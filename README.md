@@ -3,7 +3,7 @@ In this workshop you will deploy [EnMasse](http://enmasse.io/), [Apache Spark](h
 You gain insight into deploying and operating an EnMasse cluster, and connect it to a Spark cluster for analyzing the sensors data.
 
 ## Prerequisites
-There are not many prerequisites for running this workshop. The only one is to have [Maven](https://maven.apache.org/) already installed on the machine.
+There is only one prerequisite for running this workshop. You must have [Maven](https://maven.apache.org/) already installed on the machine.
 If you don't have that, there is the [official installation guide](https://maven.apache.org/install.html) for doing that.
 
 ## Setting up
