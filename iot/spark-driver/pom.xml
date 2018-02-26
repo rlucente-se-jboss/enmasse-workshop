@@ -81,7 +81,7 @@
                 <image>
                   <name>enmasseproject/spark-driver:${project.version}</name>
                   <build>
-                    <from>radanalyticsio/openshift-spark:latest</from>
+                    <from>radanalyticsio/openshift-spark:2.2-latest</from>
                     <cmd>
                       <exec>
                         <arg>/run_driver.sh</arg>
