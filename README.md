@@ -89,7 +89,7 @@ export USER=user$USER_ID
 export NAMESPACE=workspace-$USER_ID
 export OPENSHIFT_MASTER=<something>
 
-./enmasse-0.17.2/deploy-openshift.sh -a standard -n $NAMESPACE -m $OPENSHIFT_MASTER -u $USER
+./enmasse-0.17.0/deploy-openshift.sh -a standard -n $NAMESPACE -m $OPENSHIFT_MASTER -u $USER
 ```
 
 #### Startup
