@@ -2,35 +2,30 @@
 In this workshop you will deploy [EnMasse](http://enmasse.io/), [Apache Spark](https://spark.apache.org/) and an IoT sensors simulator.
 You gain insight into deploying and operating an EnMasse cluster, and connect it to a Spark cluster for analyzing the sensors data.
 
-## Prerequisits
-
-There are not so much prerequisits for running this workshop. The only one is to have [Maven](https://maven.apache.org/) already installed on the machine.
+## Prerequisites
+There are not many prerequisites for running this workshop. The only one is to have [Maven](https://maven.apache.org/) already installed on the machine.
 If you don't have that, there is the [official installation guide](https://maven.apache.org/install.html) for doing that.
 
 ## Setting up
-
-In this workshop we will be deploying 4 different components:
+In this workshop we will be deploying four different components:
 
 * EnMasse messaging service
 * A Spark cluster for doing analytics
 * A Thermostat application performing command & control of devices
 * One or more IoT device simulators
 
-The first 2 will be deployed directly to OpenShift. The thermostat will be built and
+The first two will be deployed directly to OpenShift. The thermostat will be built and
 deployed to OpenShift from your laptop, and the device IoT simulator will be running locally on your laptop.
 
 ![deployment](images/demo_deployment.png)
 
 ### (Optional) Installing OpenShift
-
 #### Downloading and installing minishift
-
 If you don't have an OpenShift cluster available, you can use [minishift](https://github.com/minishift/minishift/) to run OpenShift locally on your laptop. Minishift supports all major OS platforms.  Go to https://github.com/minishift/minishift/releases and select the latest version and the download for your OS.
 
 #### Starting minishift
-
 For this workshop, you need at least 4GB of RAM for your minishift instance since we're running both EnMasse and
-Spark on a local OpenShift cluster.
+Spark on a local OpenShift cluster.  You'll see better performance by increasing the amount of memory available.
 
 ```
 minishift start --cpus 2 --memory 4096
@@ -39,27 +34,25 @@ minishift start --cpus 2 --memory 4096
 Once this command completes, the OpenShift cluster should be ready to use.
 
 ### Exploring the console
-
 Take a few minutes to familiarize yourself with the OpenShift console. If you use minishift, you can run `minishift dashboard` which will open a window in your web browser. With minishift, you can login with username <b>developer</b> and password <b>developer</b>.
 
 ## Getting OC tools
 
 In order to execute commands against the OpenShift cluster, an `oc` client tool is needed.
 Go to [OpenShift Origin client tools releases](https://github.com/openshift/origin/releases/) and download
-the latest stable release (3.6.0 as of time of writing). Unpack the release:
+the latest stable release (3.7.1 as of time of writing) for your platform. For example on Linux, unpack the release:
 
 ```
-tar xvf openshift-origin-client-tools-v3.6.0-c4dd4cf-linux-64bit.tar.gz
+tar xvf openshift-origin-client-tools-v3.7.1-ab0f056-linux-64bit.tar.gz
 ```
 
 Then add the folder with the `oc` tools to the `PATH` :
 
 ```
-PATH=$PATH:openshift-origin-client-tools-v3.6.0-c4dd4cf-linux-64bit
+PATH=$PATH:openshift-origin-client-tools-v3.7.1-ab0f056-linux-64bit
 ```
 
 ## EnMasse messaging service
-
 EnMasse is an open source messaging platform, with focus on scalability and performance. EnMasse can
 run on your own infrastructure or in the cloud, and simplifies the deployment of messaging
 infrastructure.
@@ -67,12 +60,11 @@ infrastructure.
 For this workshop, all messages will flow through EnMasse in some way.
 
 ### Installing EnMasse
-
 Go to [EnMasse downloads](https://github.com/EnMasseProject/enmasse/releases/latest) and download
-the latest release (0.13.2 as of time of writing). Unpack the release:
+the latest release (0.17.0 as of time of writing). Unpack the release:
 
 ```
-tar xvf enmasse-0.13.2.tgz
+tar xvf enmasse-0.17.0.tgz
 ```
 
 The relase bundle contains OpenShift templates as well as a deployment script for deploying EnMasse.
@@ -80,15 +72,16 @@ We will use this script in this tutorial and have a look at its options to get a
 it works.
 
 #### Deployment script
-
 Run the deployment script with `-h` option
 
 ```
-./enmasse-0.13.2/deploy-openshift.sh -h
+./enmasse-0.17.0/deploy-openshift.sh -h
 ```
 
 In this workshop, we will deploy using the standard (Keycloak) authentication service, use a unique id as your namespace, and tell it to deploy to the OpenShift cluster.
-Set $NAMSPACE to the OpenShift project you will be using through this workshop:
+Set $NAMSPACE to the OpenShift project you will be using through this workshop.  Additionally, $USER should be set to the designated user on your OpenShift instance.
+For minishift, this would be <b>developer</b>.  $OPENSHIFT_MASTER should be set to the master hostname (reported by minishift at startup).
+On shared OpenShift clusters, the $USER and $NAMESPACE must be globally unique.  Do the following:
 
 ```
 export USER_ID=<something>
@@ -96,17 +89,17 @@ export USER=user$USER_ID
 export NAMESPACE=workspace-$USER_ID
 export OPENSHIFT_MASTER=<something>
 
-./enmasse-0.13.2/deploy-openshift.sh -a standard -n $NAMESPACE -m $OPENSHIFT_MASTER -u $USER
+./enmasse-0.17.2/deploy-openshift.sh -a standard -n $NAMESPACE -m $OPENSHIFT_MASTER -u $USER
 ```
 
 #### Startup
-
 You can observe the state of the EnMasse cluster using `oc get pods -n $NAMESPACE`. When all the pods are in the `Running` state, the cluster is ready. While waiting, go to the OpenShift console.
 
 In the OpenShift console, you can see the different deployments for the various EnMasse components. You can go into each pod and look at the logs. If we go to the address controller log, you can see that its creating a 'default' address space.
 
-#### Authenticating
+On minishift, some pods may restart if memory resources are low.  This is normal and all pods will eventually get to a running state.
 
+#### Authenticating
 Go to the OpenShift console, application -> routes, and click on the hostname for the 'keycloak' route. This should bring you to the keycloak admin console. The admin user is protected by an automatically generated password, so we need to extract that as well before being able to create users.
 
 ```
@@ -125,10 +118,9 @@ For this workshop we could use following users for example :
 * _sparkdriver_ : as Spark driver application user
 * _thermostat_ : as thermostat application user
 
-It's clear that this workshop involves a "real" user who is in charge to create and configure the addresses and some other users which are relaled to applications running in the cluster and devices running in the field.
+It's clear that this workshop involves a "real" user who is in charge to create and configure the addresses and some other users which are relaled to applications running in the cluster and devices running in the field.  The <b>console</b> user should be in the <b>admin</b> group to derive the correct authorization with the standard authentication service.
 
 #### Creating messaging addresses
-
 In EnMasse, you have the concepts of address spaces and addresses.
 
 An address space is a group of addresses that can be accessed through a single connection (per
