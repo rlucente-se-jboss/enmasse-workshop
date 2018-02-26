@@ -37,7 +37,6 @@ Once this command completes, the OpenShift cluster should be ready to use.
 Take a few minutes to familiarize yourself with the OpenShift console. If you use minishift, you can run `minishift dashboard` which will open a window in your web browser. With minishift, you can login with username <b>developer</b> and password <b>developer</b>.
 
 ## Getting OC tools
-
 In order to execute commands against the OpenShift cluster, an `oc` client tool is needed.
 Go to [OpenShift Origin client tools releases](https://github.com/openshift/origin/releases/) and download
 the latest stable release (3.7.1 as of time of writing) for your platform. For example on Linux, unpack the release:
@@ -67,7 +66,7 @@ the latest release (0.17.0 as of time of writing). Unpack the release:
 tar xvf enmasse-0.17.0.tgz
 ```
 
-The relase bundle contains OpenShift templates as well as a deployment script for deploying EnMasse.
+The release bundle contains OpenShift templates as well as a deployment script for deploying EnMasse.
 We will use this script in this tutorial and have a look at its options to get a better idea of how
 it works.
 
@@ -118,7 +117,16 @@ For this workshop we could use following users for example :
 * _sparkdriver_ : as Spark driver application user
 * _thermostat_ : as thermostat application user
 
-It's clear that this workshop involves a "real" user who is in charge to create and configure the addresses and some other users which are relaled to applications running in the cluster and devices running in the field.  The <b>console</b> user should be in the <b>admin</b> group to derive the correct authorization with the standard authentication service.
+It's clear that this workshop involves a "real" user who is in charge to create and configure the addresses and some other users which are related to applications running in the cluster and devices running in the field.
+
+Create a <b>manage</b> group for the <b>console</b> user and then create send/recv groups that map to the various addresses.  The <b>console</b> user should be a member of the <b>manage</b> group to derive the correct authorization with the standard authentication service.  Later we'll create the addresses but here we need to create the following groups with the user memberships:
+
+* send_control : thermostat
+* recv_control : device1, device2
+* send_max : sparkdriver
+* recv_max : thermostat
+* send_temperature : device1, device2
+* recv_temperature : sparkdriver
 
 #### Creating messaging addresses
 In EnMasse, you have the concepts of address spaces and addresses.
@@ -140,27 +148,25 @@ In the 'standard' address space, we have 4 types of addresses.
    * **queue** : queue on broker
    * **topic** : pub/sub on broker
 
-
 ##### Creating addresses for this workshop
 
 Go to the console, and locate the 'console' route. Click on the link to get to the EnMasse console.
 
-Create an addresses for your IoT sensors to report metrics on:
+Create addresses for your IoT sensors to report metrics on:
 
    * _temperature_ : type topic - used by devices to report temperature
    * _max_ : type anycast - used by Spark driver to report the max temperature
    * _control_ : type topic - used to send control messages to devices. Per-device control messages will be sent to control/$device-id
 
 ### Installing Apache Spark
-
 An official support for Apache Spark on OpenShift is provided by the [radanalytics.io](https://radanalytics.io/) project by means of
 the Oshinko application with a Web UI for deploying a Spark cluster. Other than using such a Web UI, a CLI tool is available as well which is used for this workshop.
 
 Go to [Oshinko CLI downloads](https://github.com/radanalyticsio/oshinko-cli/releases) and download
-the latest release (0.3.1 as of time of writing). Unpack the release:
+the latest release (0.4.4 as of time of writing). For example on Linux, unpack the release:
 
 ```
-tar xvf oshinko_v0.3.1_linux_amd64.tar.gz
+tar xvf oshinko_v0.4.4_linux_amd64.tar.gz
 ```
 
 Then use the following command in order to deploy a Spark cluster made by one master node and one slave node.
@@ -173,7 +179,7 @@ export SPARK_NAME=<something>
 
 ### Deploying the "Temperature Analyzer" Spark driver
 
-The `spark-driver` directory provides the Spark Streaming driver application and a Docker image for running the related Spark driver inside the cluster. Using `minishift`, we need that the following Docker images (built from the source) will be available in the local `minishift` Docker registry. For this reason, it's needed to run the following command first :
+The `spark-driver` directory provides the Spark Streaming driver application and a Docker image for running the related Spark driver inside the cluster. Using `minishift`, we need the following Docker images (built from the source) to be available in the local `minishift` Docker registry. For this reason, we need to run the following command first :
 
 ```
 eval $(minishift docker-env)
@@ -184,6 +190,7 @@ In order to set as `DOCKER_HOST`, the `minishift` environment and all the Docker
 This application can be packaged running the following command from such directory.
 
 ```
+cd iot/spark-driver
 mvn clean install package -Pbuild-docker-image
 ```
 
@@ -227,7 +234,6 @@ mvn fabric8:resource fabric8:deploy
 The thermostat will be deployed to the OpenShift cluster. The pod will be named `thermostat-$number` where `$number` is incremented each time you run the deploy command.
 
 ### Running the IoT simulated devices
-
 Heating simulated devices are provided for simulating data sent to the IoT system and receiving messages.
 The devices supports two protocols, AMQP and MQTT, which are configurable.
 The Heating device application :
@@ -242,8 +248,8 @@ The console application can be configured using a `device.properties` file which
 * _service.temperature.address_ : address on which temperature values will be sent (should not be changed from the _temperature_ value)
 * _service.control.prefix_ : prefix for defining the control address for receiving command (should not be changed from the _control_ value)
 * _device.id_ : device identifier
-* _device.username_ : device username (from Keyclock) for EnMasse authentication
-* _device.password_ : device password (from Keyclock) for EnMasse authentication
+* _device.username_ : device username (from Keycloak) for EnMasse authentication
+* _device.password_ : device password (from Keycloak) for EnMasse authentication
 * _device.update.interval_ : periodic interval for sending temperature values
 * _device.transport.class_ : transport class to use in terms of protocol. Possible values are _io.enmasse.iot.transport.AmqpClient_ for AMQP and _io.enmasse.iot.transport.MqttClient_ for MQTT
 * _device.transport.ssl.servercert_ : server certificate file path for accessing EnMasse using a TLS connection
@@ -251,7 +257,6 @@ The console application can be configured using a `device.properties` file which
 * _device.dht22.temperature.max_ : maximum temperature provided by the simulated DHT22 sensor
 
 #### Getting TLS certificates
-
 Connections to EnMasse running on OpenShift are possible only thrugh TLS protocol.
 In order to have such connections working, we need to get the server certificate that the device has to use for establishing the TLS connection.
 Because devices can connect using AMQP or MQTT we need to extract two different server certificates for that.
@@ -279,7 +284,6 @@ Both commands extract the certificate `server-cert.pem` file. The file path need
 Other than that, be sure that _service.hostname_ property is set to the messaging (for AMQP devices) or mqtt (for MQTT devices) route. At same time the _service.port_ property needs to be set to 443.
 
 #### Using Maven
-
 In order to run the `HeatingDevice` application you can use the Maven `exec` plugin with the following command from the `clients` directory.
 
 ```
@@ -290,7 +294,6 @@ mvn exec:java -Dexec.mainClass=io.enmasse.iot.device.impl.HeatingDevice -Dexec.a
 You can run such command more times in order to start more than one devices (using different Keycloak users and device-id for them). The provided `device-amqp.properties` and `device-mqtt.properties` files can be used as starting point for AMQP and MQTT device configuration.
 
 #### Using pre-built JARs
-
 The provided `heating-device.jar` can be used for starting a simulated heating device with the following command.
 
 ```
