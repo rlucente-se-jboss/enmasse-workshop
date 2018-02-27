@@ -192,7 +192,7 @@ used for sending and receiving messages. An address has a type,
 which defines the semantics of sending messages to and receiving
 messages from that address.
 
-In the 'standard' address space, we have 4 types of addresses.
+In the 'standard' address space, we have four types of addresses.
 
 * **multicast** : 'direct' one-to-many using dispatch router
 * **anycast** : 'direct' peer-2-peer using dispatch router
@@ -200,7 +200,8 @@ In the 'standard' address space, we have 4 types of addresses.
 * **topic** : pub/sub on broker
 
 ##### Creating addresses for this workshop
-Go to the console, and locate the 'console' route. Click on the link to get to the EnMasse console.
+Go to the OpenShift console and locate the `console` route. Click
+on the link to get to the EnMasse console.
 
 Create addresses for your IoT sensors to report metrics on:
 
