@@ -166,7 +166,8 @@ groups, respectively.
 
 Create a <b>manage</b> group for the <b>console</b> user and then create send/recv groups that map to the various addresses.  Later we'll create the addresses but here we need to create the following groups with the shown user memberships:
 
-| Group | User Membership |
+| Group | User Members |
+| ----- | ------------ |
 | manage | control |
 | send_control | thermostat |
 | recv_control | device1, device2 |
