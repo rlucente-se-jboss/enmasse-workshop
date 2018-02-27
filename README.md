@@ -95,7 +95,7 @@ Run the deployment script with `-h` option
 
 In this workshop, we will deploy using the standard (Keycloak)
 authentication service, use a unique id as your namespace, and tell
-it to deploy to the OpenShift cluster.  Set $NAMSPACE to the OpenShift
+it to deploy to the OpenShift cluster.  Set $NAMESPACE to the OpenShift
 project you will be using through this workshop.  Additionally,
 $USER should be set to the designated user on your OpenShift instance.
 For minishift, this would be <b>developer</b>.  $OPENSHIFT_MASTER
