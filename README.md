@@ -166,13 +166,14 @@ groups, respectively.
 
 Create a <b>manage</b> group for the <b>console</b> user and then create send/recv groups that map to the various addresses.  Later we'll create the addresses but here we need to create the following groups with the shown user memberships:
 
-* manage : control
-* send_control : thermostat
-* recv_control : device1, device2
-* send_max : sparkdriver
-* recv_max : thermostat
-* send_temperature : device1, device2
-* recv_temperature : sparkdriver
+| Group | User Membership |
+| manage | control |
+| send_control | thermostat |
+| recv_control | device1, device2 |
+| send_max | sparkdriver |
+| recv_max | thermostat |
+| send_temperature | device1, device2 |
+| recv_temperature | sparkdriver |
 
 #### Creating messaging addresses
 In EnMasse, you have the concepts of address spaces and addresses.
